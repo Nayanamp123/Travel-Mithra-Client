@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Customer Details - Travel Mithra</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="details-page">
+      <header class="topbar">
+        <img class="topbar-logo" src="assets/pdf-image-1.jpeg" alt="Travel Mithra" />
+        <div class="topbar-actions">
+          <span>Customer Details</span>
+          <button id="backButton" class="secondary-button" type="button">Back</button>
+        </div>
+      </header>
+
+      <section class="details-layout">
+        <article class="details-card">
+          <h1 id="customerName">Customer</h1>
+          <h2>Trip Details</h2>
+          <table class="detail-table">
+            <tbody>
+              <tr>
+                <th>Receipt No</th>
+                <td id="receiptNo">-</td>
+              </tr>
+              <tr>
+                <th>Receipt Date</th>
+                <td id="receiptDate">-</td>
+              </tr>
+              <tr>
+                <th>Address</th>
+                <td id="address">-</td>
+              </tr>
+              <tr>
+                <th>Destination</th>
+                <td id="destination">-</td>
+              </tr>
+              <tr>
+                <th>Group</th>
+                <td id="group">-</td>
+              </tr>
+              <tr>
+                <th>Remarks</th>
+                <td id="remarks">-</td>
+              </tr>
+            </tbody>
+          </table>
+        </article>
+
+        <article class="details-card">
+          <h2>Payment Details</h2>
+          <table class="detail-table payment-detail-table">
+            <tbody>
+              <tr>
+                <th>Payment Mode</th>
+                <td id="paymentMode">-</td>
+              </tr>
+              <tr>
+                <th>Payment Accepted By</th>
+                <td id="acceptedBy">-</td>
+              </tr>
+              <tr>
+                <th>Total Amount</th>
+                <td id="totalAmount">-</td>
+              </tr>
+              <tr>
+                <th>Current Paid Amount</th>
+                <td id="paidAmount">-</td>
+              </tr>
+              <tr>
+                <th>Previous Payments</th>
+                <td id="previousPayments">-</td>
+              </tr>
+              <tr>
+                <th>Total Paid</th>
+                <td id="totalPaidAmount">-</td>
+              </tr>
+              <tr>
+                <th>Balance Amount</th>
+                <td id="balanceAmount">-</td>
+              </tr>
+            </tbody>
+          </table>
+        </article>
+      </section>
+
+      <section class="details-actions">
+        <button id="downloadReceiptButton" type="button">Download Receipt</button>
+      </section>
+    </main>
+
+    <script src="customer-details.js"></script>
+  </body>
+</html>
