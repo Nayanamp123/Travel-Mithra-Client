@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { sampleCustomers } from "../../data/customers";
 import AdminDashboard from "../../components/admin/AdminDashboard";
 import type { Customer } from "../../types/travel";
@@ -10,17 +10,70 @@ import { adminService } from "../../services/adminService";
 
 function AdminDashboardPage() {
   const navigate = useNavigate();
-  const [bookings, setBookings] = useState<Customer[]>(() => getStored<Customer>(BOOKING_STORAGE_KEY));
+  const [bookings, setBookings] = useState<any[]>([]);
   const [destinationFilter, setDestinationFilter] = useState("all");
+  const [showOnlyConfirmed, setShowOnlyConfirmed] = useState(false);
 
-  const dashboardCustomers = useMemo(() => [...sampleCustomers, ...bookings], [bookings]);
+  // Fetch real bookings from backend and map to dashboard customers
+  useEffect(() => {
+    let mounted = true;
+
+    const load = async () => {
+      try {
+        const response = await (await import("../../services/bookingsService")).bookingService.getAllBookings({ page: 1, limit: 200 });
+        const rows = response.data || [];
+
+        if (!mounted) return;
+
+        setBookings(rows);
+      } catch (err) {
+        // fallback to stored/demo bookings
+        setBookings(getStored<Customer>(BOOKING_STORAGE_KEY) || []);
+      }
+    };
+
+    load();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const dashboardCustomers = useMemo(() => {
+    // Map booking rows to the dashboard `Customer` shape used by AdminDashboard
+    const mapped = bookings.map((b: any) => ({
+      id: String(b.id),
+      receiptNo: b.id ? `TMH/${b.id}` : "-",
+      date: b.trip_date ? String(new Date(b.trip_date).toLocaleDateString()) : "-",
+      name: b.customer?.name || "-",
+      userId: b.customer?.id ? String(b.customer.id) : undefined,
+      address: "-",
+      destination: b.destination || "-",
+      group: `${b.number_of_travellers || 1} travellers`,
+      paymentMode: b.payment_status || "-",
+      acceptedBy: b.customer?.name || "-",
+      totalAmount: Number(b.amount) || 0,
+      paidAmount: b.payment_status === "paid" ? Number(b.amount) : 0,
+      status: b.booking_status === "confirmed" ? "confirmed" : "pending",
+      remarks: "",
+    } as Customer));
+
+    // include demo sample customers as fallback only when no bookings
+    return mapped.length ? mapped : [...sampleCustomers];
+  }, [bookings]);
   const visibleCustomers = useMemo(() => {
-    if (destinationFilter === "all") {
-      return dashboardCustomers;
+    let list = dashboardCustomers;
+
+    if (destinationFilter !== "all") {
+      list = list.filter((customer) => customer.destination === destinationFilter);
     }
 
-    return dashboardCustomers.filter((customer) => customer.destination === destinationFilter);
-  }, [dashboardCustomers, destinationFilter]);
+    if (showOnlyConfirmed) {
+      list = list.filter((customer) => customer.status === "confirmed");
+    }
+
+    return list;
+  }, [dashboardCustomers, destinationFilter, showOnlyConfirmed]);
   const destinationOptions = useMemo(() => [...new Set(dashboardCustomers.map((customer) => customer.destination))], [dashboardCustomers]);
   const totalPaid = visibleCustomers.reduce((sum, customer) => sum + Number(customer.paidAmount), 0);
   const totalBalance = visibleCustomers.reduce((sum, customer) => sum + balance(customer), 0);
@@ -64,12 +117,14 @@ function AdminDashboardPage() {
       visibleCustomers={visibleCustomers}
       destinationOptions={destinationOptions}
       destinationFilter={destinationFilter}
+      showOnlyConfirmed={showOnlyConfirmed}
       totalPaid={totalPaid}
       totalBalance={totalBalance}
       pendingPayments={pendingPayments}
       onBack={() => navigate("/")}
       onLogout={logoutAdmin}
       onDestinationFilterChange={setDestinationFilter}
+      onShowOnlyConfirmedChange={setShowOnlyConfirmed}
       onViewCustomer={viewCustomer}
       onConfirmBooking={confirmBooking}
     />

@@ -6,12 +6,14 @@ type AdminDashboardProps = {
   visibleCustomers: Customer[];
   destinationOptions: string[];
   destinationFilter: string;
+  showOnlyConfirmed: boolean;
   totalPaid: number;
   totalBalance: number;
   pendingPayments: number;
   onBack: () => void;
   onLogout: () => void;
   onDestinationFilterChange: (destination: string) => void;
+  onShowOnlyConfirmedChange: (v: boolean) => void;
   onViewCustomer: (customer: Customer) => void;
   onConfirmBooking: (id: string) => void;
 };
@@ -28,6 +30,8 @@ function AdminDashboard({
   onDestinationFilterChange,
   onViewCustomer,
   onConfirmBooking,
+  showOnlyConfirmed,
+  onShowOnlyConfirmedChange,
 }: AdminDashboardProps) {
   return (
     <section id="dashboardView" className="dashboard-view">
@@ -74,6 +78,15 @@ function AdminDashboard({
               </option>
             ))}
           </select>
+          <label style={{ marginLeft: 12 }}>
+            <input
+              type="checkbox"
+              checked={showOnlyConfirmed}
+              onChange={(e) => onShowOnlyConfirmedChange(e.target.checked)}
+              style={{ marginRight: 6 }}
+            />
+            Show only confirmed
+          </label>
         </div>
         <div className="table-wrap">
           <table>
