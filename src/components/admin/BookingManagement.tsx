@@ -293,6 +293,22 @@ function BookingsPage() {
       loadBookings();
     };
 
+  const handleDownloadReceipt =
+    async (
+      id: number,
+    ) => {
+      try {
+        await bookingService.downloadReceipt(
+          id,
+        );
+      } catch (error) {
+        console.error(error);
+        alert(
+          "Receipt download failed",
+        );
+      }
+    };
+
 
 
   return (
@@ -684,6 +700,21 @@ function BookingsPage() {
                         >
                           Edit
                         </button>
+
+
+
+                        {booking.booking_status === "confirmed" && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleDownloadReceipt(
+                                booking.id,
+                              )
+                            }
+                          >
+                            Download
+                          </button>
+                        )}
 
 
 

@@ -297,7 +297,48 @@ function AdminLayout() {
 
             </NavLink>
 
+            {admin?.role === "super_admin" && (
+              <NavLink
+                to="/admin/destinations"
 
+                style={({
+                  isActive,
+                }) => ({
+                  display: "flex",
+
+                  alignItems:
+                    "center",
+
+                  gap: "14px",
+
+                  padding:
+                    "14px 16px",
+
+                  borderRadius:
+                    "12px",
+
+                  textDecoration:
+                    "none",
+
+                  color:
+                    "#ffffff",
+
+                  background:
+                    isActive
+                      ? "#0f6db2"
+                      : "transparent",
+                })}
+              >
+
+                <span>
+                  ✨
+                </span>
+
+                {!collapsed &&
+                  "Destinations"}
+
+              </NavLink>
+            )}
 
             <NavLink
               to="/"

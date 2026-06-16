@@ -20,6 +20,7 @@ import CustomerBookingsPage from "./pages/CustomerBookingPage";
 import HomePage from "./pages/customer/HomePage";
 
 import BookingsManagementPage from "./pages/admin/BookingManagementPage";
+import DestinationManagementPage from "./pages/admin/DestinationManagementPage";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 
@@ -105,6 +106,8 @@ function App() {
             <Route path="customers" element={<CustomersManagementPage />} />
 
             <Route path="bookings" element={<BookingsManagementPage />} />
+
+            <Route path="destinations" element={<DestinationManagementPage />} />
           </Route>
         </Route>
 
