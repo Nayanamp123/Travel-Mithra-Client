@@ -1,6 +1,6 @@
 import type { Customer } from "../../types/travel";
 import { balance, money } from "../../utils/format";
-import { downloadReceipt } from "../../utils/receipt";
+import { bookingService } from "../../services/bookingsService";
 
 type AdminDashboardProps = {
   visibleCustomers: Customer[];
@@ -126,7 +126,7 @@ function AdminDashboard({
                               Confirm
                             </button>
                           )}
-                          <button type="button" disabled={isPending} onClick={() => downloadReceipt(customer)}>
+                          <button type="button" disabled={isPending} onClick={() => bookingService.downloadReceipt(Number(customer.id))}>
                             PDF Receipt
                           </button>
                         </div>
