@@ -90,7 +90,8 @@ export const downloadReceipt = async (customer: Customer) => {
     { text: `Date : ${customer.date}`, x: 110, y: 755, size: 10 },
 
     { text: `Received a sum of`, x: 75, y: 690, size: 10 },
-    { text: `₹${money(customer.paidAmount).replace("₹", "")}/-`, x: 165, y: 670, size: 10 },
+{
+  text: `₹${money(customer.paidAmount).replace("₹", "")}/-`,x: 165,y: 670,size: 10,},  
     { text: `as part payment from ${customer.name}`, x: 75, y: 650, size: 10 },
     { text: `on account of`, x: 75, y: 625, size: 10 },
     { text: `${customer.destination}`, x: 75, y: 602, size: 10 },

@@ -46,10 +46,13 @@ export const bookingService = {
       trip_date: string;
       number_of_travellers: number;
       amount: number;
+      previous_payments: number;
+      received_amount: number;
       payment_status: string;
       booking_status: string;
     },
   ) {
+
 
     const response =
       await api.post(

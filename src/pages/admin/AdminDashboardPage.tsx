@@ -53,7 +53,14 @@ function AdminDashboardPage() {
       paymentMode: b.payment_status || "-",
       acceptedBy: b.customer?.name || "-",
       totalAmount: Number(b.amount) || 0,
-      paidAmount: b.payment_status === "paid" ? Number(b.amount) : 0,
+
+      paidAmount: Number(b.received_amount) || 0,
+
+      received_amount: Number(b.received_amount) || 0,
+
+      previous_payments: Number(b.previous_payments) || 0,
+
+      balanceAmount: Number(b.balance_to_pay) || 0,
       status: b.booking_status === "confirmed" ? "confirmed" : "pending",
       remarks: "",
     } as Customer));
@@ -76,7 +83,7 @@ function AdminDashboardPage() {
   }, [dashboardCustomers, destinationFilter, showOnlyConfirmed]);
   const destinationOptions = useMemo(() => [...new Set(dashboardCustomers.map((customer) => customer.destination))], [dashboardCustomers]);
   const totalPaid = visibleCustomers.reduce((sum, customer) => sum + Number(customer.paidAmount), 0);
-  const totalBalance = visibleCustomers.reduce((sum, customer) => sum + balance(customer), 0);
+const totalBalance = visibleCustomers.reduce((sum, customer) => sum - Number(customer.paidAmount),0);
   const pendingPayments = dashboardCustomers.filter((customer) => customer.status !== "confirmed").length;
 
   const persistBookings = (nextBookings: Customer[]) => {

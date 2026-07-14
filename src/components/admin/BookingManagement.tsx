@@ -12,11 +12,11 @@ function BookingsPage() {
 
   const [bookings,
     setBookings,
-  ] = useState([]);
+  ] = useState<any[]>([]);
 
   const [customers,
     setCustomers,
-  ] = useState([]);
+  ] = useState<any[]>([]);
 
   const [loading,
     setLoading,
@@ -32,8 +32,6 @@ function BookingsPage() {
     null,
   );
 
-
-
   const [page,
     setPage,
   ] = useState(1);
@@ -44,7 +42,8 @@ function BookingsPage() {
 
   const [search,
     setSearch,
-  ] = useState("");
+  ] = useState(""
+  );
 
   const [customerId,
     setCustomerId,
@@ -66,8 +65,6 @@ function BookingsPage() {
     setEndDate,
   ] = useState("");
 
-
-
   const [formData,
     setFormData,
   ] = useState({
@@ -76,11 +73,12 @@ function BookingsPage() {
     trip_date: "",
     number_of_travellers: "",
     amount: "",
+    previous_payments: "",
+    received_amount: "",
+    balance_amount: "",
     payment_status: "pending",
     booking_status: "pending",
   });
-
-
 
   const loadBookings =
     async () => {
@@ -118,7 +116,7 @@ function BookingsPage() {
         );
 
         setTotalPages(
-          response.totalPages || 1,
+          response.totalPages || 2,
         );
 
       } finally {
@@ -128,8 +126,6 @@ function BookingsPage() {
         );
       }
     };
-
-
 
   const loadCustomers =
     async () => {
@@ -141,8 +137,6 @@ function BookingsPage() {
         response || [],
       );
     };
-
-
 
   useEffect(() => {
 
@@ -160,8 +154,6 @@ function BookingsPage() {
     endDate,
   ]);
 
-
-
   const resetForm = () => {
 
     setEditingId(
@@ -178,43 +170,52 @@ function BookingsPage() {
       trip_date: "",
       number_of_travellers: "",
       amount: "",
-      payment_status:
-        "pending",
-      booking_status:
-        "pending",
+      received_amount: "",
+      balance_amount: "",
+      previous_payments: "",
+      payment_status: "pending",
+      booking_status: "pending",
     });
   };
 
-
+  const toNumberOrUndefined = (value: string) => {
+    if (value === "") return undefined;
+    const n = Number(value);
+    return Number.isNaN(n) ? undefined : n;
+  };
 
   const handleSubmit =
     async (
-      event:
-        React.FormEvent,
+      event: React.FormEvent,
     ) => {
 
       event.preventDefault();
 
+      // Backend likely expects numeric types; avoid accidental 0 from empty string.
       const payload = {
         ...formData,
 
         customer_id:
-          Number(
-            formData.customer_id,
-          ),
+          toNumberOrUndefined(formData.customer_id),
 
         number_of_travellers:
-          Number(
-            formData.number_of_travellers,
-          ),
+          toNumberOrUndefined(formData.number_of_travellers),
 
         amount:
-          Number(
-            formData.amount,
-          ),
-      };
+          toNumberOrUndefined(formData.amount),
 
+        previous_payments:
+          toNumberOrUndefined(formData.previous_payments),
 
+        received_amount:
+          toNumberOrUndefined(formData.received_amount),
+
+       
+        balance_amount:
+          toNumberOrUndefined(formData.balance_amount),
+          
+        
+      }
 
       if (editingId) {
 
@@ -225,17 +226,15 @@ function BookingsPage() {
 
       } else {
 
-        await bookingService.createBooking(
-          payload,
-        );
+        // Remove disabled/computed field before sending payload
+        const { balance_amount, ...createPayload } = payload as any;
+        await bookingService.createBooking(createPayload);
       }
 
       resetForm();
 
       loadBookings();
     };
-
-
 
   const handleEdit = (
     booking: any,
@@ -251,9 +250,7 @@ function BookingsPage() {
 
     setFormData({
       customer_id:
-        String(
-          booking.customer_id,
-        ),
+        String(booking.customer_id),
 
       destination:
         booking.destination,
@@ -262,14 +259,19 @@ function BookingsPage() {
         booking.trip_date,
 
       number_of_travellers:
-        String(
-          booking.number_of_travellers,
-        ),
+        String(booking.number_of_travellers),
 
       amount:
-        String(
-          booking.amount,
-        ),
+        String(booking.amount),
+
+      received_amount:
+        String(booking.received_amount),
+
+      previous_payments:
+        String(booking.previous_payments),
+
+      balance_amount:
+        String(booking.balance_to_pay),
 
       payment_status:
         booking.payment_status,
@@ -278,8 +280,6 @@ function BookingsPage() {
         booking.booking_status,
     });
   };
-
-
 
   const handleDelete =
     async (
@@ -308,8 +308,6 @@ function BookingsPage() {
         );
       }
     };
-
-
 
   return (
     <section>
@@ -352,17 +350,13 @@ function BookingsPage() {
 
         </div>
 
-
-
         <button
           type="button"
-
           onClick={() =>
             setShowModal(
               true,
             )
           }
-
           style={{
             background:
               "#0f6db2",
@@ -384,8 +378,6 @@ function BookingsPage() {
         </button>
 
       </div>
-
-
 
       <div
         style={{
@@ -413,8 +405,6 @@ function BookingsPage() {
           }
         />
 
-
-
         <select
           value={customerId}
           onChange={(event) =>
@@ -430,20 +420,16 @@ function BookingsPage() {
 
           {customers.map(
             (customer: any) => (
-
               <option
                 key={customer.id}
                 value={customer.id}
               >
                 {customer.name}
               </option>
-
             ),
           )}
 
         </select>
-
-
 
         <select
           value={paymentStatus}
@@ -476,8 +462,6 @@ function BookingsPage() {
 
         </select>
 
-
-
         <select
           value={bookingStatus}
           onChange={(event) =>
@@ -505,8 +489,6 @@ function BookingsPage() {
 
         </select>
 
-
-
         <input
           type="date"
           value={startDate}
@@ -516,8 +498,6 @@ function BookingsPage() {
             )
           }
         />
-
-
 
         <input
           type="date"
@@ -530,8 +510,6 @@ function BookingsPage() {
         />
 
       </div>
-
-
 
       <div
         style={{
@@ -564,51 +542,39 @@ function BookingsPage() {
           >
 
             <tr>
-
               <th style={{ padding: "18px" }}>
                 Customer
               </th>
-
               <th style={{ padding: "18px" }}>
                 Destination
               </th>
-
               <th style={{ padding: "18px" }}>
                 Trip Date
               </th>
-
               <th style={{ padding: "18px" }}>
                 Travellers
               </th>
-
               <th style={{ padding: "18px" }}>
                 Amount
               </th>
-
               <th style={{ padding: "18px" }}>
                 Payment
               </th>
-
               <th style={{ padding: "18px" }}>
                 Booking
               </th>
-
               <th style={{ padding: "18px" }}>
                 Actions
               </th>
-
             </tr>
 
           </thead>
-
-
 
           <tbody>
 
             {loading ? (
 
               <tr>
-
                 <td
                   colSpan={8}
                   style={{
@@ -620,67 +586,44 @@ function BookingsPage() {
                 >
                   Loading...
                 </td>
-
               </tr>
 
             ) : bookings.length ? (
 
               bookings.map(
-                (
-                  booking: any,
-                ) => (
+                (booking: any) => (
 
-                  <tr
-                    key={
-                      booking.id
-                    }
-                  >
+                  <tr key={booking.id}>
 
                     <td style={{ padding: "18px" }}>
-                      {
-                        booking.customer?.name
-                      }
+                      {booking.customer?.name}
                     </td>
 
                     <td style={{ padding: "18px" }}>
-                      {
-                        booking.destination
-                      }
+                      {booking.destination}
                     </td>
 
                     <td style={{ padding: "18px" }}>
-                      {
-                        booking.trip_date
-                      }
+                      {booking.trip_date}
                     </td>
 
                     <td style={{ padding: "18px" }}>
-                      {
-                        booking.number_of_travellers
-                      }
+                      {booking.number_of_travellers}
                     </td>
 
                     <td style={{ padding: "18px" }}>
-                      ₹
-                      {
-                        booking.amount
-                      }
+                      ₹{booking.amount}
                     </td>
 
                     <td style={{ padding: "18px" }}>
-                      {
-                        booking.payment_status
-                      }
+                      {booking.payment_status}
                     </td>
 
                     <td style={{ padding: "18px" }}>
-                      {
-                        booking.booking_status
-                      }
+                      {booking.booking_status}
                     </td>
 
                     <td style={{ padding: "18px" }}>
-
                       <div
                         style={{
                           display:
@@ -701,8 +644,6 @@ function BookingsPage() {
                           Edit
                         </button>
 
-
-
                         {booking.booking_status === "confirmed" && (
                           <button
                             type="button"
@@ -716,8 +657,6 @@ function BookingsPage() {
                           </button>
                         )}
 
-
-
                         <button
                           type="button"
                           onClick={() =>
@@ -730,17 +669,16 @@ function BookingsPage() {
                         </button>
 
                       </div>
-
                     </td>
 
                   </tr>
+
                 ),
               )
 
             ) : (
 
               <tr>
-
                 <td
                   colSpan={8}
                   style={{
@@ -752,7 +690,6 @@ function BookingsPage() {
                 >
                   No bookings found
                 </td>
-
               </tr>
 
             )}
@@ -762,8 +699,6 @@ function BookingsPage() {
         </table>
 
       </div>
-
-
 
       <div
         style={{
@@ -786,18 +721,12 @@ function BookingsPage() {
           Prev
         </button>
 
-
-
         <span>
           Page {page} of {totalPages}
         </span>
 
-
-
         <button
-          disabled={
-            page === totalPages
-          }
+          disabled={page === totalPages}
           onClick={() =>
             setPage(
               page + 1,
@@ -808,8 +737,6 @@ function BookingsPage() {
         </button>
 
       </div>
-
-
 
       {showModal && (
 
@@ -842,7 +769,8 @@ function BookingsPage() {
 
             <div
               style={{
-                display: "flex",
+                display:
+                  "flex",
                 justifyContent:
                   "space-between",
                 alignItems:
@@ -853,12 +781,8 @@ function BookingsPage() {
             >
 
               <h2>
-                {editingId
-                  ? "Edit Booking"
-                  : "Create Booking"}
+                {editingId ? "Edit Booking" : "Create Booking"}
               </h2>
-
-
 
               <button
                 type="button"
@@ -869,19 +793,17 @@ function BookingsPage() {
 
             </div>
 
-
-
             <form
               onSubmit={handleSubmit}
               style={{
-                display: "grid",
+                display:
+                  "grid",
                 gap: "16px",
               }}
             >
 
               <label>
                 Customer
-
                 <select
                   value={formData.customer_id}
                   onChange={(event) =>
@@ -898,35 +820,23 @@ function BookingsPage() {
                   </option>
 
                   {customers.map(
-                    (
-                      customer: any,
-                    ) => (
+                    (customer: any) => (
 
                       <option
-                        key={
-                          customer.id
-                        }
-                        value={
-                          customer.id
-                        }
+                        key={customer.id}
+                        value={customer.id}
                       >
-                        {
-                          customer.name
-                        }
+                        {customer.name}
                       </option>
 
                     ),
                   )}
 
                 </select>
-
               </label>
-
-
 
               <label>
                 Destination
-
                 <input
                   type="text"
                   value={formData.destination}
@@ -938,14 +848,10 @@ function BookingsPage() {
                     })
                   }
                 />
-
               </label>
-
-
 
               <label>
                 Trip Date
-
                 <input
                   type="date"
                   value={formData.trip_date}
@@ -957,14 +863,10 @@ function BookingsPage() {
                     })
                   }
                 />
-
               </label>
-
-
 
               <label>
                 Number Of Travellers
-
                 <input
                   type="number"
                   value={formData.number_of_travellers}
@@ -976,14 +878,10 @@ function BookingsPage() {
                     })
                   }
                 />
-
               </label>
-
-
 
               <label>
                 Amount
-
                 <input
                   type="number"
                   value={formData.amount}
@@ -995,14 +893,54 @@ function BookingsPage() {
                     })
                   }
                 />
-
               </label>
 
+              <label>
+                Previous Payments
+                <input
+                  type="number"
+                  value={formData.previous_payments}
+                  onChange={(event) =>
+                    setFormData({
+                      ...formData,
+                      previous_payments:
+                        event.target.value,
+                    })
+                  }
+                />
+              </label>
 
+              <label>
+                Received a Sum Of
+                <input
+                  type="number"
+                  value={formData.received_amount}
+                  onChange={(event) =>
+                    setFormData({
+                      ...formData,
+                      received_amount:
+                        event.target.value,
+                    })
+                  }
+                />
+              </label>
+
+              <label>
+                Balance to Pay
+                <input
+                  type="number"
+                  value={formData.balance_amount}
+                  disabled
+                  style={{
+                    background: "#f3f4f6",
+                    cursor: "not-allowed",
+                    fontWeight: "bold",
+                  }}
+                />
+              </label>
 
               <label>
                 Payment Status
-
                 <select
                   value={formData.payment_status}
                   onChange={(event) =>
@@ -1031,14 +969,10 @@ function BookingsPage() {
                   </option>
 
                 </select>
-
               </label>
-
-
 
               <label>
                 Booking Status
-
                 <select
                   value={formData.booking_status}
                   onChange={(event) =>
@@ -1063,17 +997,10 @@ function BookingsPage() {
                   </option>
 
                 </select>
-
               </label>
 
-
-
               <button type="submit">
-
-                {editingId
-                  ? "Update Booking"
-                  : "Create Booking"}
-
+                {editingId ? "Update Booking" : "Create Booking"}
               </button>
 
             </form>
@@ -1089,3 +1016,4 @@ function BookingsPage() {
 }
 
 export default BookingsPage;
+
