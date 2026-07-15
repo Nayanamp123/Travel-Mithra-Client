@@ -83,7 +83,7 @@ function AdminDashboardPage() {
   }, [dashboardCustomers, destinationFilter, showOnlyConfirmed]);
   const destinationOptions = useMemo(() => [...new Set(dashboardCustomers.map((customer) => customer.destination))], [dashboardCustomers]);
   const totalPaid = visibleCustomers.reduce((sum, customer) => sum + Number(customer.paidAmount), 0);
-const totalBalance = visibleCustomers.reduce((sum, customer) => sum - Number(customer.paidAmount),0);
+  const totalBalance = visibleCustomers.reduce((sum, customer) => sum - Number(customer.paidAmount), 0);
   const pendingPayments = dashboardCustomers.filter((customer) => customer.status !== "confirmed").length;
 
   const persistBookings = (nextBookings: Customer[]) => {
@@ -91,12 +91,20 @@ const totalBalance = visibleCustomers.reduce((sum, customer) => sum - Number(cus
     setStored(BOOKING_STORAGE_KEY, nextBookings);
   };
 
-  const confirmBooking = (id: string) => {
-    persistBookings(
-      bookings.map((booking) =>
-        booking.id === id ? { ...booking, status: "confirmed", acceptedBy: "Travel Mithra Admin", remarks: "Payment confirmed by admin." } : booking,
-      ),
+  const confirmBooking = async (id: string) => {
+    // Update booking in backend, then refresh dashboard data
+    await (await import("../../services/bookingsService")).bookingService.updateBooking(
+      Number(id),
+      { booking_status: "confirmed" },
     );
+
+    // Refresh (re-fetch) bookings so UI matches DB
+    const response = await (await import("../../services/bookingsService")).bookingService.getAllBookings({
+      page: 1,
+      limit: 200,
+    });
+    const rows = response.data || [];
+    setBookings(rows);
   };
 
   const viewCustomer = (customer: Customer) => {
