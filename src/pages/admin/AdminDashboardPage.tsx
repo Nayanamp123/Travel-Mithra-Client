@@ -3,16 +3,26 @@ import { sampleCustomers } from "../../data/customers";
 import AdminDashboard from "../../components/admin/AdminDashboard";
 import type { Customer } from "../../types/travel";
 import { balance, money } from "../../utils/format";
-import { getStored, setStored } from "../../utils/storage";
+import { getStored } from "../../utils/storage";
 import { BOOKING_STORAGE_KEY } from "../../constants/storage";
 import { useNavigate } from "react-router-dom";
 import { adminService } from "../../services/adminService";
+import { bookingService } from "../../services/bookingsService";
 
 function AdminDashboardPage() {
   const navigate = useNavigate();
+
   const [bookings, setBookings] = useState<any[]>([]);
   const [destinationFilter, setDestinationFilter] = useState("all");
   const [showOnlyConfirmed, setShowOnlyConfirmed] = useState(false);
+
+  const now = new Date();
+  const [salesExecutive, setSalesExecutive] = useState<"Aliya" | "Keerthi">("Aliya");
+  const [salesYear, setSalesYear] = useState(now.getFullYear());
+  const [salesMonth, setSalesMonth] = useState(now.getMonth() + 1);
+  const [salesStartDate, setSalesStartDate] = useState("");
+  const [salesEndDate, setSalesEndDate] = useState("");
+  const [monthlySales, setMonthlySales] = useState<any>(null);
 
   // Fetch real bookings from backend and map to dashboard customers
   useEffect(() => {
@@ -20,14 +30,12 @@ function AdminDashboardPage() {
 
     const load = async () => {
       try {
-        const response = await (await import("../../services/bookingsService")).bookingService.getAllBookings({ page: 1, limit: 200 });
+        const response = await bookingService.getAllBookings({ page: 1, limit: 200 });
         const rows = response.data || [];
-
         if (!mounted) return;
-
         setBookings(rows);
       } catch (err) {
-        // fallback to stored/demo bookings
+        if (!mounted) return;
         setBookings(getStored<Customer>(BOOKING_STORAGE_KEY) || []);
       }
     };
@@ -39,8 +47,37 @@ function AdminDashboardPage() {
     };
   }, []);
 
+  // Fetch monthly sales list for selected executive
+  useEffect(() => {
+    let mounted = true;
+
+    const loadMonthly = async () => {
+      try {
+        // If both date range fields are filled, use date range; otherwise use month/year
+        const useDateRange = salesStartDate && salesEndDate;
+        const data = await bookingService.getMonthlySalesCustomersByExecutive(
+          salesExecutive,
+          salesYear,
+          salesMonth,
+          useDateRange ? salesStartDate : undefined,
+          useDateRange ? salesEndDate : undefined,
+        );
+        if (!mounted) return;
+        setMonthlySales(data);
+      } catch {
+        if (!mounted) return;
+        setMonthlySales(null);
+      }
+    };
+
+    loadMonthly();
+
+    return () => {
+      mounted = false;
+    };
+  }, [salesExecutive, salesYear, salesMonth, salesStartDate, salesEndDate]);
+
   const dashboardCustomers = useMemo(() => {
-    // Map booking rows to the dashboard `Customer` shape used by AdminDashboard
     const mapped = bookings.map((b: any) => ({
       id: String(b.id),
       receiptNo: b.id ? `TMH/${b.id}` : "-",
@@ -53,21 +90,17 @@ function AdminDashboardPage() {
       paymentMode: b.payment_status || "-",
       acceptedBy: b.customer?.name || "-",
       totalAmount: Number(b.amount) || 0,
-
       paidAmount: Number(b.received_amount) || 0,
-
       received_amount: Number(b.received_amount) || 0,
-
       previous_payments: Number(b.previous_payments) || 0,
-
       balanceAmount: Number(b.balance_to_pay) || 0,
       status: b.booking_status === "confirmed" ? "confirmed" : "pending",
       remarks: "",
-    } as Customer));
+    })) as Customer[];
 
-    // include demo sample customers as fallback only when no bookings
     return mapped.length ? mapped : [...sampleCustomers];
   }, [bookings]);
+
   const visibleCustomers = useMemo(() => {
     let list = dashboardCustomers;
 
@@ -81,28 +114,20 @@ function AdminDashboardPage() {
 
     return list;
   }, [dashboardCustomers, destinationFilter, showOnlyConfirmed]);
-  const destinationOptions = useMemo(() => [...new Set(dashboardCustomers.map((customer) => customer.destination))], [dashboardCustomers]);
+
+  const destinationOptions = useMemo(
+    () => [...new Set(dashboardCustomers.map((customer) => customer.destination))],
+    [dashboardCustomers],
+  );
+
   const totalPaid = visibleCustomers.reduce((sum, customer) => sum + Number(customer.paidAmount), 0);
   const totalBalance = visibleCustomers.reduce((sum, customer) => sum - Number(customer.paidAmount), 0);
   const pendingPayments = dashboardCustomers.filter((customer) => customer.status !== "confirmed").length;
 
-  const persistBookings = (nextBookings: Customer[]) => {
-    setBookings(nextBookings);
-    setStored(BOOKING_STORAGE_KEY, nextBookings);
-  };
-
   const confirmBooking = async (id: string) => {
-    // Update booking in backend, then refresh dashboard data
-    await (await import("../../services/bookingsService")).bookingService.updateBooking(
-      Number(id),
-      { booking_status: "confirmed" },
-    );
+    await bookingService.updateBooking(Number(id), { booking_status: "confirmed" });
 
-    // Refresh (re-fetch) bookings so UI matches DB
-    const response = await (await import("../../services/bookingsService")).bookingService.getAllBookings({
-      page: 1,
-      limit: 200,
-    });
+    const response = await bookingService.getAllBookings({ page: 1, limit: 200 });
     const rows = response.data || [];
     setBookings(rows);
   };
@@ -142,8 +167,21 @@ function AdminDashboardPage() {
       onShowOnlyConfirmedChange={setShowOnlyConfirmed}
       onViewCustomer={viewCustomer}
       onConfirmBooking={confirmBooking}
+
+      salesExecutive={salesExecutive}
+      salesYear={salesYear}
+      salesMonth={salesMonth}
+      salesStartDate={salesStartDate}
+      salesEndDate={salesEndDate}
+      monthlySales={monthlySales}
+      onSalesExecutiveChange={setSalesExecutive}
+      onSalesYearChange={setSalesYear}
+      onSalesMonthChange={setSalesMonth}
+      onSalesStartDateChange={setSalesStartDate}
+      onSalesEndDateChange={setSalesEndDate}
     />
   );
 }
 
 export default AdminDashboardPage;
+

@@ -65,19 +65,21 @@ function BookingsPage() {
     setEndDate,
   ] = useState("");
 
-  const [formData,
+const [formData,
     setFormData,
   ] = useState({
     customer_id: "",
     destination: "",
     trip_date: "",
-    number_of_travellers: "",
+    adults: "",
+    kids: "",
     amount: "",
     previous_payments: "",
     received_amount: "",
     balance_amount: "",
     payment_status: "pending",
     booking_status: "pending",
+    sales_executive: "Aliya",
   });
 
   const loadBookings =
@@ -164,17 +166,19 @@ function BookingsPage() {
       false,
     );
 
-    setFormData({
+setFormData({
       customer_id: "",
       destination: "",
       trip_date: "",
-      number_of_travellers: "",
+      adults: "",
+      kids: "",
       amount: "",
       received_amount: "",
       balance_amount: "",
       previous_payments: "",
       payment_status: "pending",
       booking_status: "pending",
+      sales_executive: "Aliya",
     });
   };
 
@@ -198,8 +202,11 @@ function BookingsPage() {
         customer_id:
           toNumberOrUndefined(formData.customer_id),
 
-        number_of_travellers:
-          toNumberOrUndefined(formData.number_of_travellers),
+adults:
+          toNumberOrUndefined(formData.adults),
+
+        kids:
+          toNumberOrUndefined(formData.kids),
 
         amount:
           toNumberOrUndefined(formData.amount),
@@ -258,8 +265,11 @@ function BookingsPage() {
       trip_date:
         booking.trip_date,
 
-      number_of_travellers:
-        String(booking.number_of_travellers),
+      adults:
+        String(booking.adults || booking.number_of_travellers || 0),
+
+      kids:
+        String(booking.kids || 0),
 
       amount:
         String(booking.amount),
@@ -278,6 +288,9 @@ function BookingsPage() {
 
       booking_status:
         booking.booking_status,
+
+      sales_executive:
+        booking.sales_executive || "Aliya",
     });
   };
 
@@ -511,16 +524,34 @@ function BookingsPage() {
 
       </div>
 
-      <div
+<div
         style={{
           background:
             "#ffffff",
           borderRadius:
             "18px",
-          overflow:
-            "hidden",
+          overflowX:
+            "auto",
+          cursor: "grab",
           boxShadow:
             "0 4px 20px rgba(0,0,0,0.08)",
+        }}
+        onMouseDown={(e) => {
+          const el = e.currentTarget;
+          const startX = e.pageX - el.offsetLeft;
+          const scrollLeft = el.scrollLeft;
+          const onMouseMove = (ev: MouseEvent) => {
+            ev.preventDefault();
+            el.scrollLeft = scrollLeft - (ev.pageX - el.offsetLeft - startX);
+          };
+          const onMouseUp = () => {
+            document.removeEventListener("mousemove", onMouseMove);
+            document.removeEventListener("mouseup", onMouseUp);
+            el.style.cursor = "grab";
+          };
+          el.style.cursor = "grabbing";
+          document.addEventListener("mousemove", onMouseMove);
+          document.addEventListener("mouseup", onMouseUp);
         }}
       >
 
@@ -608,7 +639,7 @@ function BookingsPage() {
                     </td>
 
                     <td style={{ padding: "18px" }}>
-                      {booking.number_of_travellers}
+                      {booking.adults || booking.number_of_travellers || 0} Adult + {booking.kids || 0} Kid
                     </td>
 
                     <td style={{ padding: "18px" }}>
@@ -640,6 +671,16 @@ function BookingsPage() {
                               booking,
                             )
                           }
+                          style={{
+                            background: "#0f6db2",
+                            color: "#ffffff",
+                            border: "none",
+                            padding: "10px 18px",
+                            borderRadius: "8px",
+                            cursor: "pointer",
+                            fontWeight: "700",
+                            fontSize: "13px",
+                          }}
                         >
                           Edit
                         </button>
@@ -738,278 +779,275 @@ function BookingsPage() {
 
       </div>
 
+      {/* OVERLAY - visible when drawer is open */}
       {showModal && (
-
         <div
+          onClick={resetForm}
           style={{
             position: "fixed",
             inset: 0,
-            background:
-              "rgba(0,0,0,0.55)",
+            background: "rgba(0,0,0,0.45)",
+            zIndex: 999,
+            transition: "opacity 0.3s ease",
+          }}
+        />
+      )}
+
+      {/* SLIDING DRAWER - slides in from right */}
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          right: 0,
+          width: "480px",
+          maxWidth: "100vw",
+          height: "100vh",
+          background: "#ffffff",
+          boxShadow: "-6px 0 30px rgba(0,0,0,0.15)",
+          zIndex: 1000,
+          overflowY: "auto",
+          transform: showModal ? "translateX(0)" : "translateX(100%)",
+          transition: "transform 0.35s ease-in-out",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        {/* DRAWER HEADER */}
+        <div
+          style={{
             display: "flex",
-            alignItems:
-              "center",
-            justifyContent:
-              "center",
-            zIndex: 1000,
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "24px 28px",
+            borderBottom: "1px solid #e5e7eb",
+            background: "#f8fafc",
+            position: "sticky",
+            top: 0,
+            zIndex: 1,
           }}
         >
-
-          <div
+          <h2 style={{ margin: 0, fontSize: 20, color: "#152334" }}>
+            {editingId ? "Edit Booking" : "Create Booking"}
+          </h2>
+          <button
+            type="button"
+            onClick={resetForm}
             style={{
-              background:
-                "#ffffff",
-              width: "450px",
-              borderRadius:
-                "18px",
-              padding:
-                "30px",
+              width: 36,
+              height: 36,
+              borderRadius: "50%",
+              border: "none",
+              background: "#eef4f8",
+              color: "#64748b",
+              cursor: "pointer",
+              fontSize: 18,
+              display: "grid",
+              placeItems: "center",
+              fontWeight: 700,
             }}
           >
-
-            <div
-              style={{
-                display:
-                  "flex",
-                justifyContent:
-                  "space-between",
-                alignItems:
-                  "center",
-                marginBottom:
-                  "24px",
-              }}
-            >
-
-              <h2>
-                {editingId ? "Edit Booking" : "Create Booking"}
-              </h2>
-
-              <button
-                type="button"
-                onClick={resetForm}
-              >
-                ✕
-              </button>
-
-            </div>
-
-            <form
-              onSubmit={handleSubmit}
-              style={{
-                display:
-                  "grid",
-                gap: "16px",
-              }}
-            >
-
-              <label>
-                Customer
-                <select
-                  value={formData.customer_id}
-                  onChange={(event) =>
-                    setFormData({
-                      ...formData,
-                      customer_id:
-                        event.target.value,
-                    })
-                  }
-                >
-
-                  <option value="">
-                    Select Customer
-                  </option>
-
-                  {customers.map(
-                    (customer: any) => (
-
-                      <option
-                        key={customer.id}
-                        value={customer.id}
-                      >
-                        {customer.name}
-                      </option>
-
-                    ),
-                  )}
-
-                </select>
-              </label>
-
-              <label>
-                Destination
-                <input
-                  type="text"
-                  value={formData.destination}
-                  onChange={(event) =>
-                    setFormData({
-                      ...formData,
-                      destination:
-                        event.target.value,
-                    })
-                  }
-                />
-              </label>
-
-              <label>
-                Trip Date
-                <input
-                  type="date"
-                  value={formData.trip_date}
-                  onChange={(event) =>
-                    setFormData({
-                      ...formData,
-                      trip_date:
-                        event.target.value,
-                    })
-                  }
-                />
-              </label>
-
-              <label>
-                Number Of Travellers
-                <input
-                  type="number"
-                  value={formData.number_of_travellers}
-                  onChange={(event) =>
-                    setFormData({
-                      ...formData,
-                      number_of_travellers:
-                        event.target.value,
-                    })
-                  }
-                />
-              </label>
-
-              <label>
-                Amount
-                <input
-                  type="number"
-                  value={formData.amount}
-                  onChange={(event) =>
-                    setFormData({
-                      ...formData,
-                      amount:
-                        event.target.value,
-                    })
-                  }
-                />
-              </label>
-
-              <label>
-                Previous Payments
-                <input
-                  type="number"
-                  value={formData.previous_payments}
-                  onChange={(event) =>
-                    setFormData({
-                      ...formData,
-                      previous_payments:
-                        event.target.value,
-                    })
-                  }
-                />
-              </label>
-
-              <label>
-                Received a Sum Of
-                <input
-                  type="number"
-                  value={formData.received_amount}
-                  onChange={(event) =>
-                    setFormData({
-                      ...formData,
-                      received_amount:
-                        event.target.value,
-                    })
-                  }
-                />
-              </label>
-
-              <label>
-                Balance to Pay
-                <input
-                  type="number"
-                  value={formData.balance_amount}
-                  disabled
-                  style={{
-                    background: "#f3f4f6",
-                    cursor: "not-allowed",
-                    fontWeight: "bold",
-                  }}
-                />
-              </label>
-
-              <label>
-                Payment Status
-                <select
-                  value={formData.payment_status}
-                  onChange={(event) =>
-                    setFormData({
-                      ...formData,
-                      payment_status:
-                        event.target.value,
-                    })
-                  }
-                >
-
-                  <option value="pending">
-                    Pending
-                  </option>
-
-                  <option value="partial">
-                    Partial
-                  </option>
-
-                  <option value="paid">
-                    Paid
-                  </option>
-
-                  <option value="refunded">
-                    Refunded
-                  </option>
-
-                </select>
-              </label>
-
-              <label>
-                Booking Status
-                <select
-                  value={formData.booking_status}
-                  onChange={(event) =>
-                    setFormData({
-                      ...formData,
-                      booking_status:
-                        event.target.value,
-                    })
-                  }
-                >
-
-                  <option value="pending">
-                    Pending
-                  </option>
-
-                  <option value="confirmed">
-                    Confirmed
-                  </option>
-
-                  <option value="cancelled">
-                    Cancelled
-                  </option>
-
-                </select>
-              </label>
-
-              <button type="submit">
-                {editingId ? "Update Booking" : "Create Booking"}
-              </button>
-
-            </form>
-
-          </div>
-
+            ✕
+          </button>
         </div>
 
-      )}
+        {/* DRAWER BODY */}
+        <div style={{ padding: "24px 28px", flex: 1, overflowY: "auto" }}>
+          <form
+            onSubmit={handleSubmit}
+            style={{
+              display: "grid",
+              gap: "18px",
+            }}
+          >
+            <label style={{ display: "grid", gap: 6, color: "#64748b", fontWeight: 700, fontSize: 14 }}>
+              Customer
+              <select
+                value={formData.customer_id}
+                onChange={(event) =>
+                  setFormData({
+                    ...formData,
+                    customer_id: event.target.value,
+                  })
+                }
+                style={{ padding: 12, border: "1px solid #d6d9de", borderRadius: 8, background: "#fff", color: "#1f2933" }}
+              >
+                <option value="">Select Customer</option>
+                {customers.map((customer: any) => (
+                  <option key={customer.id} value={customer.id}>
+                    {customer.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label style={{ display: "grid", gap: 6, color: "#64748b", fontWeight: 700, fontSize: 14 }}>
+              Destination
+              <input
+                type="text"
+                value={formData.destination}
+                onChange={(event) =>
+                  setFormData({ ...formData, destination: event.target.value })
+                }
+                style={{ padding: 12, border: "1px solid #d6d9de", borderRadius: 8, color: "#1f2933" }}
+              />
+            </label>
+
+            <label style={{ display: "grid", gap: 6, color: "#64748b", fontWeight: 700, fontSize: 14 }}>
+              Trip Date
+              <input
+                type="date"
+                value={formData.trip_date}
+                onChange={(event) =>
+                  setFormData({ ...formData, trip_date: event.target.value })
+                }
+                style={{ padding: 12, border: "1px solid #d6d9de", borderRadius: 8, color: "#1f2933" }}
+              />
+            </label>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+              <label style={{ display: "grid", gap: 6, color: "#64748b", fontWeight: 700, fontSize: 14 }}>
+                Adults
+                <input
+                  type="number"
+                  value={formData.adults}
+                  onChange={(event) =>
+                    setFormData({ ...formData, adults: event.target.value })
+                  }
+                  style={{ padding: 12, border: "1px solid #d6d9de", borderRadius: 8, color: "#1f2933" }}
+                />
+              </label>
+
+              <label style={{ display: "grid", gap: 6, color: "#64748b", fontWeight: 700, fontSize: 14 }}>
+                Kids
+                <input
+                  type="number"
+                  value={formData.kids}
+                  onChange={(event) =>
+                    setFormData({ ...formData, kids: event.target.value })
+                  }
+                  style={{ padding: 12, border: "1px solid #d6d9de", borderRadius: 8, color: "#1f2933" }}
+                />
+              </label>
+            </div>
+
+            <label style={{ display: "grid", gap: 6, color: "#64748b", fontWeight: 700, fontSize: 14 }}>
+              Amount
+              <input
+                type="number"
+                value={formData.amount}
+                onChange={(event) =>
+                  setFormData({ ...formData, amount: event.target.value })
+                }
+                style={{ padding: 12, border: "1px solid #d6d9de", borderRadius: 8, color: "#1f2933" }}
+              />
+            </label>
+
+            <label style={{ display: "grid", gap: 6, color: "#64748b", fontWeight: 700, fontSize: 14 }}>
+              Previous Payments
+              <input
+                type="number"
+                value={formData.previous_payments}
+                onChange={(event) =>
+                  setFormData({ ...formData, previous_payments: event.target.value })
+                }
+                style={{ padding: 12, border: "1px solid #d6d9de", borderRadius: 8, color: "#1f2933" }}
+              />
+            </label>
+
+            <label style={{ display: "grid", gap: 6, color: "#64748b", fontWeight: 700, fontSize: 14 }}>
+              Received a Sum Of
+              <input
+                type="number"
+                value={formData.received_amount}
+                onChange={(event) =>
+                  setFormData({ ...formData, received_amount: event.target.value })
+                }
+                style={{ padding: 12, border: "1px solid #d6d9de", borderRadius: 8, color: "#1f2933" }}
+              />
+            </label>
+
+            <label style={{ display: "grid", gap: 6, color: "#64748b", fontWeight: 700, fontSize: 14 }}>
+              Balance to Pay
+              <input
+                type="number"
+                value={formData.balance_amount}
+                disabled
+                style={{
+                  padding: 12,
+                  border: "1px solid #d6d9de",
+                  borderRadius: 8,
+                  background: "#f3f4f6",
+                  cursor: "not-allowed",
+                  fontWeight: "bold",
+                  color: "#1f2933",
+                }}
+              />
+            </label>
+
+            <label style={{ display: "grid", gap: 6, color: "#64748b", fontWeight: 700, fontSize: 14 }}>
+              Payment Status
+              <select
+                value={formData.payment_status}
+                onChange={(event) =>
+                  setFormData({ ...formData, payment_status: event.target.value })
+                }
+                style={{ padding: 12, border: "1px solid #d6d9de", borderRadius: 8, background: "#fff", color: "#1f2933" }}
+              >
+                <option value="pending">Pending</option>
+                <option value="partial">Partial</option>
+                <option value="paid">Paid</option>
+                <option value="refunded">Refunded</option>
+              </select>
+            </label>
+
+            <label style={{ display: "grid", gap: 6, color: "#64748b", fontWeight: 700, fontSize: 14 }}>
+              Booking Status
+              <select
+                value={formData.booking_status}
+                onChange={(event) =>
+                  setFormData({ ...formData, booking_status: event.target.value })
+                }
+                style={{ padding: 12, border: "1px solid #d6d9de", borderRadius: 8, background: "#fff", color: "#1f2933" }}
+              >
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </label>
+
+            <label style={{ display: "grid", gap: 6, color: "#64748b", fontWeight: 700, fontSize: 14 }}>
+              Sales Executive
+              <select
+                value={formData.sales_executive}
+                onChange={(event) =>
+                  setFormData({ ...formData, sales_executive: event.target.value })
+                }
+                style={{ padding: 12, border: "1px solid #d6d9de", borderRadius: 8, background: "#fff", color: "#1f2933" }}
+              >
+                <option value="Aliya">Aliya</option>
+                <option value="Keerthi">Keerthi</option>
+              </select>
+            </label>
+
+            <button
+              type="submit"
+              style={{
+                background: "#0f6db2",
+                color: "#ffffff",
+                border: "none",
+                padding: "14px 22px",
+                borderRadius: "10px",
+                cursor: "pointer",
+                fontWeight: "700",
+                fontSize: 15,
+                marginTop: 8,
+              }}
+            >
+              {editingId ? "Update Booking" : "Create Booking"}
+            </button>
+          </form>
+        </div>
+      </div>
 
     </section>
   );

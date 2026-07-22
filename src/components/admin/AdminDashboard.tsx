@@ -2,6 +2,9 @@ import type { Customer } from "../../types/travel";
 import { balance, money } from "../../utils/format";
 import { bookingService } from "../../services/bookingsService";
 
+import type { MonthlySalesResponse } from "../../types/sales";
+import MonthlySalesExecutiveTable from "./MonthlySalesExecutiveTable";
+
 type AdminDashboardProps = {
   visibleCustomers: Customer[];
   destinationOptions: string[];
@@ -10,12 +13,25 @@ type AdminDashboardProps = {
   totalPaid: number;
   totalBalance: number;
   pendingPayments: number;
+
   onBack: () => void;
   onLogout: () => void;
   onDestinationFilterChange: (destination: string) => void;
   onShowOnlyConfirmedChange: (v: boolean) => void;
   onViewCustomer: (customer: Customer) => void;
   onConfirmBooking: (id: string) => void;
+
+  salesExecutive: "Aliya" | "Keerthi";
+  salesYear: number;
+  salesMonth: number;
+  salesStartDate: string;
+  salesEndDate: string;
+  monthlySales: MonthlySalesResponse | null;
+  onSalesExecutiveChange: (v: "Aliya" | "Keerthi") => void;
+  onSalesYearChange: (v: number) => void;
+  onSalesMonthChange: (v: number) => void;
+  onSalesStartDateChange: (v: string) => void;
+  onSalesEndDateChange: (v: string) => void;
 };
 
 function AdminDashboard({
@@ -32,6 +48,18 @@ function AdminDashboard({
   onConfirmBooking,
   showOnlyConfirmed,
   onShowOnlyConfirmedChange,
+
+  salesExecutive,
+  salesYear,
+  salesMonth,
+  salesStartDate,
+  salesEndDate,
+  monthlySales,
+  onSalesExecutiveChange,
+  onSalesYearChange,
+  onSalesMonthChange,
+  onSalesStartDateChange,
+  onSalesEndDateChange,
 }: AdminDashboardProps) {
   return (
     <section id="dashboardView" className="dashboard-view">
@@ -70,7 +98,11 @@ function AdminDashboard({
       <section className="workspace">
         <div className="filter-bar">
           <label htmlFor="destinationFilter">Destination</label>
-          <select id="destinationFilter" value={destinationFilter} onChange={(event) => onDestinationFilterChange(event.target.value)}>
+          <select
+            id="destinationFilter"
+            value={destinationFilter}
+            onChange={(event) => onDestinationFilterChange(event.target.value)}
+          >
             <option value="all">All Destinations</option>
             {destinationOptions.map((destination) => (
               <option key={destination} value={destination}>
@@ -88,6 +120,68 @@ function AdminDashboard({
             Show only confirmed
           </label>
         </div>
+
+        {/* Monthly sales executive section */}
+        <div style={{ marginBottom: 18, padding: 16, background: "#ffffff", borderRadius: 16 }}>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+            <label>
+              Sales Executive
+              <select value={salesExecutive} onChange={(e) => onSalesExecutiveChange(e.target.value as any)} style={{ marginLeft: 8 }}>
+                <option value="Aliya">Aliya</option>
+                <option value="Keerthi">Keerthi</option>
+              </select>
+            </label>
+
+            <label>
+              Month
+              <select value={salesMonth} onChange={(e) => onSalesMonthChange(Number(e.target.value))} style={{ marginLeft: 8 }}>
+                {[...Array(12)].map((_, i) => {
+                  const m = i + 1;
+                  return (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  );
+                })}
+              </select>
+            </label>
+
+            <label>
+              Year
+              <input
+                type="number"
+                value={salesYear}
+                onChange={(e) => onSalesYearChange(Number(e.target.value))}
+                style={{ marginLeft: 8, width: 80 }}
+              />
+            </label>
+
+            <span style={{ color: "#94a3b8", fontWeight: 600 }}>OR</span>
+
+            <label>
+              From Date
+              <input
+                type="date"
+                value={salesStartDate}
+                onChange={(e) => onSalesStartDateChange(e.target.value)}
+                style={{ marginLeft: 8 }}
+              />
+            </label>
+
+            <label>
+              To Date
+              <input
+                type="date"
+                value={salesEndDate}
+                onChange={(e) => onSalesEndDateChange(e.target.value)}
+                style={{ marginLeft: 8 }}
+              />
+            </label>
+          </div>
+
+<MonthlySalesExecutiveTable data={monthlySales} startDate={salesStartDate} endDate={salesEndDate} />
+        </div>
+
         <div className="table-wrap">
           <table>
             <thead>
@@ -126,7 +220,11 @@ function AdminDashboard({
                               Confirm
                             </button>
                           )}
-                          <button type="button" disabled={isPending} onClick={() => bookingService.downloadReceipt(Number(customer.id))}>
+                          <button
+                            type="button"
+                            disabled={isPending}
+                            onClick={() => bookingService.downloadReceipt(Number(customer.id))}
+                          >
                             PDF Receipt
                           </button>
                         </div>
@@ -148,3 +246,4 @@ function AdminDashboard({
 }
 
 export default AdminDashboard;
+

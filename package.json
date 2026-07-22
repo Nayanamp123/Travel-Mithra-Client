@@ -17,7 +17,8 @@
     "react": "latest",
     "react-dom": "latest",
     "react-router-dom": "^7.15.1",
-    "vite": "latest"
+    "vite": "latest",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/react": "latest",
