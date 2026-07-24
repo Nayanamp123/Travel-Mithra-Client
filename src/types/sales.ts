@@ -1,4 +1,4 @@
-export type SalesExecutive = "Aliya" | "Keerthi";
+export type SalesExecutive = "Aliya" | "Keerthi" | "Sharanya";
 
 export type MonthlySalesCustomer = {
   customerId: number;

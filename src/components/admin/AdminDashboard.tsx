@@ -21,13 +21,13 @@ type AdminDashboardProps = {
   onViewCustomer: (customer: Customer) => void;
   onConfirmBooking: (id: string) => void;
 
-  salesExecutive: "Aliya" | "Keerthi";
+  salesExecutive: "Aliya" | "Keerthi" | "Sharanya";
   salesYear: number;
   salesMonth: number;
   salesStartDate: string;
   salesEndDate: string;
   monthlySales: MonthlySalesResponse | null;
-  onSalesExecutiveChange: (v: "Aliya" | "Keerthi") => void;
+  onSalesExecutiveChange: (v: "Aliya" | "Keerthi" | "Sharanya") => void;
   onSalesYearChange: (v: number) => void;
   onSalesMonthChange: (v: number) => void;
   onSalesStartDateChange: (v: string) => void;
@@ -129,6 +129,7 @@ function AdminDashboard({
               <select value={salesExecutive} onChange={(e) => onSalesExecutiveChange(e.target.value as any)} style={{ marginLeft: 8 }}>
                 <option value="Aliya">Aliya</option>
                 <option value="Keerthi">Keerthi</option>
+                <option value="Sharanya">Sharanya</option>
               </select>
             </label>
 

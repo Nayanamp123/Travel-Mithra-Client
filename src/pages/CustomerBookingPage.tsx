@@ -16,5 +16,4 @@ function CustomerBookingsPage() {
     </section>
   );
 }
-
 export default CustomerBookingsPage;

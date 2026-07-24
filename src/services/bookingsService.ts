@@ -27,7 +27,7 @@ export const bookingService = {
     received_amount: number;
     payment_status: string;
     booking_status: string;
-    sales_executive?: "Aliya" | "Keerthi";
+    sales_executive?: "Aliya" | "Keerthi" | "Sharanya";
   }) {
     const response = await api.post("/booking", data);
     return response.data;
@@ -70,7 +70,7 @@ export const bookingService = {
   },
 
   async getMonthlySalesCustomersByExecutive(
-    executive: "Aliya" | "Keerthi",
+    executive: "Aliya" | "Keerthi" | "Sharanya",
     year: number,
     month: number,
     startDate?: string,
@@ -84,7 +84,7 @@ export const bookingService = {
   },
 
   async downloadSalesReportPDF(
-    executive: "Aliya" | "Keerthi",
+    executive: "Aliya" | "Keerthi" | "Sharanya",
     year: number,
     month: number,
     startDate?: string,

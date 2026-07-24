@@ -17,7 +17,7 @@ function AdminDashboardPage() {
   const [showOnlyConfirmed, setShowOnlyConfirmed] = useState(false);
 
   const now = new Date();
-  const [salesExecutive, setSalesExecutive] = useState<"Aliya" | "Keerthi">("Aliya");
+  const [salesExecutive, setSalesExecutive] = useState<"Aliya" | "Keerthi" | "Sharanya">("Aliya");
   const [salesYear, setSalesYear] = useState(now.getFullYear());
   const [salesMonth, setSalesMonth] = useState(now.getMonth() + 1);
   const [salesStartDate, setSalesStartDate] = useState("");
